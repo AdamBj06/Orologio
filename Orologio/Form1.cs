@@ -24,15 +24,16 @@ namespace Orologio
         public int Alpha = 90 - DateTime.Now.Second * 6;
         public int Beta = 90 - DateTime.Now.Minute * 6;
         public int Gamma = 90 - DateTime.Now.Hour * 30;
+        public int Teta = 90;
         public int LancettaSecondi = 280;
-        public int LancettaMinuti = 260;
+        public int LancettaMinuti = 255;
         public int LancettaOre = 200;
 
         public Form1()
         {
             InitializeComponent();
         }
-
+        
         private void timer1_Tick(object sender, EventArgs e)
         {
             g = CreateGraphics();
@@ -47,12 +48,6 @@ namespace Orologio
             //Ore
             Ore = new Pen(Color.White, 15);
             g.DrawLine(Ore, Width / 2, Height / 2, Convert.ToInt32(LancettaOre * Math.Cos(Gamma * (Math.PI / 180)) + Width / 2), Convert.ToInt32(-LancettaOre * Math.Sin(Gamma * (Math.PI / 180)) + Height / 2));
-            #endregion
-
-            #region Lancietta secondi
-            Alpha -= 6;
-            Secondi = new Pen(Color.Red, 6);
-            g.DrawLine(Secondi, Width / 2, Height / 2, Convert.ToInt32(LancettaSecondi * Math.Cos(Alpha * (Math.PI / 180)) + Width / 2), Convert.ToInt32(-LancettaSecondi * Math.Sin(Alpha * (Math.PI / 180)) + Height / 2));
             #endregion
 
             #region Lancietta minuti
@@ -74,36 +69,34 @@ namespace Orologio
             #endregion
 
             #region Tacche
-            /*Tacca = new Pen(Color.Black, 8);
-            g.DrawLine(Tacca, Width / 2, Height / 2 - 265, Width / 2, Height / 2 - 290);
-            Tacca = new Pen(Color.Black, 6);
-            g.DrawLine(Tacca, Width / 2 + 132, Height / 2 - 222, Width / 2 + 148, Height / 2 - 245);
-            //g.DrawLine(Tacca, Width / 2, Height / 2 - 88, Width / 2, Height / 2 - 1);
-            //IV Quadrante
-            Tacca = new Pen(Color.Black, 8);
-            g.DrawLine(Tacca, Width / 2 + 265, Height / 2, Width / 2 + 290, Height / 2);
-            Tacca = new Pen(Color.Black, 6);
-            //g.DrawLine(Tacca, Width / 2, Height / 2 - 265, Width / 2, Height / 2 - 290);
-            //g.DrawLine(Tacca, Width / 2, Height / 2 - 265, Width / 2, Height / 2 - 290);
-            //III Quadrante
-            Tacca = new Pen(Color.Black, 8);
-            g.DrawLine(Tacca, Width / 2, Height / 2 + 265, Width / 2, Height / 2 + 290);
-            Tacca = new Pen(Color.Black, 6);
-            //g.DrawLine(Tacca, Width / 2, Height / 2 - 265, Width / 2, Height / 2 - 290);
-            //g.DrawLine(Tacca, Width / 2, Height / 2 - 265, Width / 2, Height / 2 - 290);
-            //II Quadrante
-            Tacca = new Pen(Color.Black, 8);
-            g.DrawLine(Tacca, Width / 2 - 265, Height / 2, Width / 2 - 290, Height / 2);
-            Tacca = new Pen(Color.Black, 6);
-            //g.DrawLine(Tacca, Width / 2, Height / 2 - 265, Width / 2, Height / 2 - 290);
-            //g.DrawLine(Tacca, Width / 2, Height / 2 - 265, Width / 2, Height / 2 - 290);*/
-
-            /*Tacca = new Pen(Color.Black, 8);
             for (int i = 0; i < 60; i++)
             {
-                g.DrawLine(Ore, Width / 2 + 135, Height / 2 - 225, Convert.ToInt32(15 * Math.Cos(Gamma * (Math.PI / 180)) + Width / 2), Convert.ToInt32(-15 * Math.Sin(Gamma * (Math.PI / 180)) + Height / 2));
-            }*/
+                if(Teta % 30 != 0)
+                {
+                    Tacca = new Pen(Color.Black, 6);
+                    g.DrawLine(Tacca, Convert.ToInt32(270 * Math.Cos(Teta * (Math.PI / 180)) + Width / 2), Convert.ToInt32(-270 * Math.Sin(Teta * (Math.PI / 180)) + Height / 2), Convert.ToInt32(285 * Math.Cos(Teta * (Math.PI / 180)) + Width / 2), Convert.ToInt32(-285 * Math.Sin(Teta * (Math.PI / 180)) + Height / 2));
+                }
+                else if(Teta % 30 == 0 && Teta % 90 != 0)
+                {
+                    Tacca = new Pen(Color.Black, 8);
+                    g.DrawLine(Tacca, Convert.ToInt32(265 * Math.Cos(Teta * (Math.PI / 180)) + Width / 2), Convert.ToInt32(-265 * Math.Sin(Teta * (Math.PI / 180)) + Height / 2), Convert.ToInt32(290 * Math.Cos(Teta * (Math.PI / 180)) + Width / 2), Convert.ToInt32(-290 * Math.Sin(Teta * (Math.PI / 180)) + Height / 2));
+                }
+                else
+                {
+                    Tacca = new Pen(Color.Black, 10);
+                    g.DrawLine(Tacca, Convert.ToInt32(260 * Math.Cos(Teta * (Math.PI / 180)) + Width / 2), Convert.ToInt32(-260 * Math.Sin(Teta * (Math.PI / 180)) + Height / 2), Convert.ToInt32(290 * Math.Cos(Teta * (Math.PI / 180)) + Width / 2), Convert.ToInt32(-290 * Math.Sin(Teta * (Math.PI / 180)) + Height / 2));
+                }
+                Teta -= 6;
+            }
             #endregion
+
+            #region Lancietta secondi
+            Alpha -= 6;
+            Secondi = new Pen(Color.Red, 6);
+            g.DrawLine(Secondi, Width / 2, Height / 2, Convert.ToInt32(LancettaSecondi * Math.Cos(Alpha * (Math.PI / 180)) + Width / 2), Convert.ToInt32(-LancettaSecondi * Math.Sin(Alpha * (Math.PI / 180)) + Height / 2));
+            #endregion
+
+            g.FillEllipse(Brushes.Black, Width / 2 - 15, Height / 2 - 15, 30, 30); //Cerchio centrale
         }
 
         private void Form1_Shown(object sender, EventArgs e)
