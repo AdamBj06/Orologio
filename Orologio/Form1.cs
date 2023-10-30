@@ -13,21 +13,30 @@ namespace Orologio
     public partial class Form1 : Form
     {
         public Graphics g;
-        public Pen Orologio = new Pen(Color.Black, 10);
+        public Pen Orologio = new Pen(Color.Black, 10);//penna(colore, spessore)
         public Pen Secondi;
         public Pen Minuti;
         public Pen Ore;
         public Pen Tacca;
-        public Brush Testo = new SolidBrush(Color.Black);
-        Font FontTesto = new Font("Arial", 20, FontStyle.Bold);
-        SizeF Stringsize;
-        public int Alpha = 90 - DateTime.Now.Second * 6;
+        public Brush Testo = new SolidBrush(Color.Black);//pennello(colore)
+        Font FontTesto = new Font("lobster", 50, FontStyle.Bold);//font(font, dimenasioni carattere, grassetto)
+        SizeF Stringsize;//variabile per le dimensioni (altezza e larghezza)
+        public int Alpha = 90 - DateTime.Now.Second * 6;//angoli: angolo di partenza - orario corrente trasformato in angolo
         public int Beta = 90 - DateTime.Now.Minute * 6;
-        public int Gamma = 90 - DateTime.Now.Hour * 30;
-        public int Teta = 90;
-        public int LancettaSecondi = 280;
+        //angolo ore: angolo di partenza - ora corrente trasformato in angolo - minuto corrente trasformato in angolo
+        public int Gamma = 90 - DateTime.Now.Hour * 30 - DateTime.Now.Minute / 2;//ogni ora sono 30°(360/12),
+                                                                                //ogni minuto è 0.5°(360/(12*60)), allora facciamo ogni 2 min (*2)
+        public int Teta;
+        public int LancettaSecondi = 280;//lunghezza lancetta
         public int LancettaMinuti = 255;
         public int LancettaOre = 200;
+        public int Raggio = 300;
+        public int Cx;
+        public int Cy;
+        public int x;
+        public int y;
+        public int x2;
+        public int y2;
 
         public Form1()
         {
@@ -36,104 +45,113 @@ namespace Orologio
         
         private void timer1_Tick(object sender, EventArgs e)
         {
+            Cx = Width / 2;//coordinata x del contro del form
+            Cy = Height / 2;//coordinata y del contro del form
             g = CreateGraphics();
 
-            #region cancella lanciette vecchie
-            //Secondi
-            Secondi = new Pen(Color.White, 6);
-            g.DrawLine(Secondi, Width / 2, Height / 2, Convert.ToInt32(LancettaSecondi * Math.Cos(Alpha * (Math.PI / 180)) + Width / 2), Convert.ToInt32(-LancettaSecondi * Math.Sin(Alpha * (Math.PI / 180)) + Height / 2));
-            //Minuti
-            Minuti = new Pen(Color.White, 8);
-            g.DrawLine(Minuti, Width / 2, Height / 2, Convert.ToInt32(LancettaMinuti * Math.Cos(Beta * (Math.PI / 180)) + Width / 2), Convert.ToInt32(-LancettaMinuti * Math.Sin(Beta * (Math.PI / 180)) + Height / 2));
-            //Ore
-            Ore = new Pen(Color.White, 15);
-            g.DrawLine(Ore, Width / 2, Height / 2, Convert.ToInt32(LancettaOre * Math.Cos(Gamma * (Math.PI / 180)) + Width / 2), Convert.ToInt32(-LancettaOre * Math.Sin(Gamma * (Math.PI / 180)) + Height / 2));
+            //bisogna cancellare le lanciatte che sono state disegnate prima di disegnare di nuovo la lancietta
+            g.Clear(Color.White);//sbianca il form
+
+            /*g.DrawEllipse(Penna, x, y, diametro (x), diametro (y));
+            faccio centro - raggio perchè il form disegna dall'angolo in'alto a sinistra,
+            che dista quanto il raggio sia in x che y dal centro del cerchio;*/
+            g.DrawEllipse(Orologio, Cx - Raggio, Cy - Raggio, 600, 600); //Orologio
+
+            #region Numeri
+            Teta = 60; //angolo iniziale (num 1)
+            for (int i = 1; i <= 12; i++)//12 numeri, quindi si ripete 12 volte
+            {
+                Stringsize = g.MeasureString(i.ToString(), FontTesto); //misura la larghezza e altezza del testo(stringa, font);
+                //x: converti ad un intero(distanza dal centro * coseno(angolo in radianti) + Cx - metà della larghezza della stringa (per centrarlo))
+                x = Convert.ToInt32((Raggio - 80) * Math.Cos(Teta * (Math.PI / 180)) + Cx - Stringsize.Width / 2);
+                //y: converti ad un intero(-distanza dal centro * seno(angolo in radianti) + Cy - metà dell'altezza della stringa (per centrarlo))
+                y = Convert.ToInt32(-(Raggio - 80) * Math.Sin(Teta * (Math.PI / 180)) + Cy - Stringsize.Height / 2);
+                g.DrawString(i.ToString(), FontTesto, Testo, x, y); //g.DrawString(testo, font, pennello, x, y)
+                Teta -= 30;
+            }
             #endregion
 
             #region Lancietta minuti
-            if(DateTime.Now.Second == 0)
+            //muovi di un minuto solo se la lancietta dei secondi e a ore 12 (0 secondi/60 secondi)
+            if (DateTime.Now.Second == 0)
             {
-                Beta -= 6;
+                Beta -= 6;//ogni minuto sono 6°
             }
             Minuti = new Pen(Color.Black, 8);
-            g.DrawLine(Minuti, Width / 2, Height / 2, Convert.ToInt32(LancettaMinuti * Math.Cos(Beta * (Math.PI / 180)) + Width / 2), Convert.ToInt32(-LancettaMinuti * Math.Sin(Beta * (Math.PI / 180)) + Height / 2));
+            //converti ad un intero(lunghezza * coseno(angolo in radianti) + Cx)
+            x = Convert.ToInt32(LancettaMinuti * Math.Cos(Beta * (Math.PI / 180)) + Cx);
+            //converti ad un intero(-lunghezza * seno(angolo in radianti) + Cy)
+            y = Convert.ToInt32(-LancettaMinuti * Math.Sin(Beta * (Math.PI / 180)) + Cy);
+            //g.DrawLine(penna, x del punto iniziale, y del punto iniziale, , x del punto finale, y del punto finale)
+            g.DrawLine(Minuti, Cx, Cy, x, y);
             #endregion
 
             #region Lancietta ore
-            if (DateTime.Now.Minute == 0 && DateTime.Now.Second == 0)
+            //muovi di 1° solo se la lancietta dei secondi e a ore 12 (0 secondi/60 secondi) E ogni 2 minuti
+            if (DateTime.Now.Minute % 2 == 0 && DateTime.Now.Second == 0)
             {
-                Gamma -= 30;
+                Gamma -= 1;//ogni 2 minuti sono 1° per la lancietta delle ore
             }
             Ore = new Pen(Color.Black, 15);
-            g.DrawLine(Ore, Width / 2, Height / 2, Convert.ToInt32(LancettaOre * Math.Cos(Gamma * (Math.PI / 180)) + Width / 2), Convert.ToInt32(-LancettaOre * Math.Sin(Gamma * (Math.PI / 180)) + Height / 2));
+            //stessa formula della lancietta dei minuti solo con angolo e lungezza delle ore
+            x = Convert.ToInt32(LancettaOre * Math.Cos(Gamma * (Math.PI / 180)) + Cx);
+            y = Convert.ToInt32(-LancettaOre * Math.Sin(Gamma * (Math.PI / 180)) + Cy);
+            g.DrawLine(Ore, Cx, Cy, x, y);
             #endregion
 
             #region Tacche
-            for (int i = 0; i < 60; i++)
+            Teta = 90; //angolo iniziale (00:00:00)
+            for (int i = 0; i < 60; i++)//60 tacche, quindi si ripete 12 volte
             {
-                if(Teta % 30 != 0)
-                {
-                    Tacca = new Pen(Color.Black, 6);
-                    g.DrawLine(Tacca, Convert.ToInt32(270 * Math.Cos(Teta * (Math.PI / 180)) + Width / 2), Convert.ToInt32(-270 * Math.Sin(Teta * (Math.PI / 180)) + Height / 2), Convert.ToInt32(285 * Math.Cos(Teta * (Math.PI / 180)) + Width / 2), Convert.ToInt32(-285 * Math.Sin(Teta * (Math.PI / 180)) + Height / 2));
-                }
-                else if(Teta % 30 == 0 && Teta % 90 != 0)
-                {
-                    Tacca = new Pen(Color.Black, 8);
-                    g.DrawLine(Tacca, Convert.ToInt32(265 * Math.Cos(Teta * (Math.PI / 180)) + Width / 2), Convert.ToInt32(-265 * Math.Sin(Teta * (Math.PI / 180)) + Height / 2), Convert.ToInt32(290 * Math.Cos(Teta * (Math.PI / 180)) + Width / 2), Convert.ToInt32(-290 * Math.Sin(Teta * (Math.PI / 180)) + Height / 2));
-                }
-                else
+                //gli if sono solo per spessore e lungezza diversa per le tacche in punti speciale es(12,1, 2 ecc.)
+                if(Teta % 90 == 0)//ad ogni quarto (12, 3, 6, 9)
                 {
                     Tacca = new Pen(Color.Black, 10);
-                    g.DrawLine(Tacca, Convert.ToInt32(260 * Math.Cos(Teta * (Math.PI / 180)) + Width / 2), Convert.ToInt32(-260 * Math.Sin(Teta * (Math.PI / 180)) + Height / 2), Convert.ToInt32(290 * Math.Cos(Teta * (Math.PI / 180)) + Width / 2), Convert.ToInt32(-290 * Math.Sin(Teta * (Math.PI / 180)) + Height / 2));
+                    //x: converti ad un intero(distanza dal centro iniziale * coseno(angolo in radianti) + Cx)
+                    x = Convert.ToInt32(260 * Math.Cos(Teta * (Math.PI / 180)) + Cx);
+                    //y: converti ad un intero(-distanza dal centro iniziale * seno(angolo in radianti) + Cy)
+                    y = Convert.ToInt32(-260 * Math.Sin(Teta * (Math.PI / 180)) + Cy);
+                    //x2: converti ad un intero(distanza dal centro finale * coseno(angolo in radianti) + Cx)
+                    x2 = Convert.ToInt32(290 * Math.Cos(Teta * (Math.PI / 180)) + Cx);
+                    //y2: converti ad un intero(-distanza dal centro finale * seno(angolo in radianti) + Cy)
+                    y2 = Convert.ToInt32(-290 * Math.Sin(Teta * (Math.PI / 180)) + Cy);
+                    //g.DrawLine(penna, x: punto iniziale, y: punto iniziale, x2: punto finale, y2: punto finale)
+                    g.DrawLine(Tacca, x, y, x2, y2);
                 }
-                Teta -= 6;
+                else if(Teta % 30 == 0)//ad ogni dodicesimo (1, 2, 4, 5, 7, 8, 10, 11)
+                {
+                    Tacca = new Pen(Color.Black, 8);
+                    x = Convert.ToInt32(265 * Math.Cos(Teta * (Math.PI / 180)) + Cx);
+                    y = Convert.ToInt32(-265 * Math.Sin(Teta * (Math.PI / 180)) + Cy);
+                    x2 = Convert.ToInt32(290 * Math.Cos(Teta * (Math.PI / 180)) + Cx);
+                    y2 = Convert.ToInt32(-290 * Math.Sin(Teta * (Math.PI / 180)) + Cy);
+                    g.DrawLine(Tacca, x, y, x2, y2);
+                }
+                else//ad ogni sessantesimo (tutto il resto)
+                {
+                    Tacca = new Pen(Color.Black, 4);
+                    x = Convert.ToInt32(270 * Math.Cos(Teta * (Math.PI / 180)) + Cx);
+                    y = Convert.ToInt32(-270 * Math.Sin(Teta * (Math.PI / 180)) + Cy);
+                    x2 = Convert.ToInt32(285 * Math.Cos(Teta * (Math.PI / 180)) + Cx);
+                    y2 = Convert.ToInt32(-285 * Math.Sin(Teta * (Math.PI / 180)) + Cy);
+                    g.DrawLine(Tacca, x, y, x2, y2);
+                }
+                Teta -= 6;//angolo - un sessantesimo del cerchio
             }
             #endregion
 
+            /*i secondi sono alla fine così disgna la lancietta sopra il resto (è più estetico)*/
             #region Lancietta secondi
-            Alpha -= 6;
-            Secondi = new Pen(Color.Red, 6);
-            g.DrawLine(Secondi, Width / 2, Height / 2, Convert.ToInt32(LancettaSecondi * Math.Cos(Alpha * (Math.PI / 180)) + Width / 2), Convert.ToInt32(-LancettaSecondi * Math.Sin(Alpha * (Math.PI / 180)) + Height / 2));
+            Alpha -= 6; //ogni secondo sono 6°
+            Secondi = new Pen(Color.Red, 4);
+            //stessa formula della lancietta dei minuti solo con angolo e lungezza dei secondi
+            x = Convert.ToInt32(LancettaSecondi * Math.Cos(Alpha * (Math.PI / 180)) + Cx);
+            y = Convert.ToInt32(-LancettaSecondi * Math.Sin(Alpha * (Math.PI / 180)) + Cy);
+            g.DrawLine(Secondi, Cx, Cy, x, y);
             #endregion
 
-            g.FillEllipse(Brushes.Black, Width / 2 - 15, Height / 2 - 15, 30, 30); //Cerchio centrale
-        }
-
-        private void Form1_Shown(object sender, EventArgs e)
-        {
-            g = CreateGraphics();
-            g.DrawEllipse(Orologio, Width / 2 - 300, Height / 2 - 300, 600, 600); //Orologio
-
-            #region Numeri
-            //I Quadrante
-            Stringsize = g.MeasureString("12", FontTesto);
-            g.DrawString("12", FontTesto, Testo, Width / 2 - Stringsize.Width / 2, Height / 2 - 340);
-            Stringsize = g.MeasureString("1", FontTesto);
-            g.DrawString("1", FontTesto, Testo, Width / 2 + 170 - Stringsize.Width / 2, Height / 2 - 283 - Stringsize.Height / 2);
-            Stringsize = g.MeasureString("2", FontTesto);
-            g.DrawString("2", FontTesto, Testo, Width / 2 + 283 - Stringsize.Width / 2, Height / 2 - 170 - Stringsize.Height / 2);
-            //IV Quadrante
-            Stringsize = g.MeasureString("3", FontTesto);
-            g.DrawString("3", FontTesto, Testo, Width / 2 + 320, Height / 2 - Stringsize.Height/2);
-            Stringsize = g.MeasureString("4", FontTesto);
-            g.DrawString("4", FontTesto, Testo, Width / 2 + 283 - Stringsize.Width / 2, Height / 2 + 170 - Stringsize.Height / 2);
-            Stringsize = g.MeasureString("5", FontTesto);
-            g.DrawString("5", FontTesto, Testo, Width / 2 + 170 - Stringsize.Width / 2, Height / 2 + 283 - Stringsize.Height / 2);
-            //III Quadrante
-            Stringsize = g.MeasureString("6", FontTesto);
-            g.DrawString("6", FontTesto, Testo, Width / 2 - Stringsize.Width / 2, Height / 2 + 320);
-            Stringsize = g.MeasureString("7", FontTesto);
-            g.DrawString("7", FontTesto, Testo, Width / 2 - 170 - Stringsize.Width / 2, Height / 2 + 283 - Stringsize.Height / 2);
-            Stringsize = g.MeasureString("8", FontTesto);
-            g.DrawString("8", FontTesto, Testo, Width / 2 - 283 - Stringsize.Width / 2, Height / 2 + 170 - Stringsize.Height / 2);
-            //II Quadrante
-            Stringsize = g.MeasureString("9", FontTesto);
-            g.DrawString("9", FontTesto, Testo, Width / 2 - 340 , Height / 2 - Stringsize.Height / 2);
-            Stringsize = g.MeasureString("10", FontTesto);
-            g.DrawString("10", FontTesto, Testo, Width / 2 - 283 - Stringsize.Width / 2, Height / 2 - 170 - Stringsize.Height / 2);
-            Stringsize = g.MeasureString("11", FontTesto);
-            g.DrawString("11", FontTesto, Testo, Width / 2 - 170 - Stringsize.Width / 2, Height / 2 - 283 - Stringsize.Height / 2);
-            #endregion
+            //g.FillEllipse(colore pieno, cx - raggio cerchio/2, cy - raggio cerchio/2, diametrox, diametero y)
+            g.FillEllipse(Brushes.Black, Cx - 15, Cy - 15, 30, 30); //Cerchio centrale
         }
     }
 }
