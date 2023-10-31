@@ -65,8 +65,8 @@ namespace Orologio
             LancettaSecondi = Raggio - (Raggio / 7);//lunghezza lancetta
             LancettaMinuti = Raggio - (Raggio / 4);
             LancettaOre = Raggio - (Raggio / 3);
-            Cx = Width / 2;//coordinata x del contro del form
-            Cy = Height / 2;//coordinata y del contro del form
+            Cx = Width / 2;//coordinata x del centro del form
+            Cy = Height / 2;//coordinata y del centro del form
 
             #region Parte che non cambia
 
