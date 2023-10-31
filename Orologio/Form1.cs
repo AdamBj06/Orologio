@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace Orologio
 {
-    public partial class Form1 : Form
+    public partial class form1 : Form
     {
         #region Graphics
         public Pen Orologio = new Pen(Color.Black, 10);//penna(colore, spessore)
@@ -19,8 +19,9 @@ namespace Orologio
         public Pen Ore = new Pen(Color.Black, 15);
         public Pen Tacca = new Pen(Color.Black);
         public Pen Rettangolo = new Pen(Color.Black, 6);
+        public Brush InternoRettangolo = new SolidBrush(Color.DarkSeaGreen);
         public Brush Numeri = new SolidBrush(Color.Black);
-        public Brush Clock = new SolidBrush(Color.Blue);//pennello(colore)
+        public Brush Clock = new SolidBrush(Color.DarkBlue);//pennello(colore)
         Font FontNumeri = new Font("lobster", 50, FontStyle.Bold);//font(font, dimenasioni carattere, grassetto)
         Font FontClock = new Font("lobster", 50);
         SizeF Stringsize;//variabile per le dimensioni (altezza e larghezza)
@@ -40,15 +41,17 @@ namespace Orologio
         public int Cx, Cy;
         public float x;
         public int y, x2, y2;
+        public bool TemaScuro = false;
         #endregion
 
-        public Form1()
+        public form1()
         {
             InitializeComponent();
         }
 
         private void Form1_Paint(object sender, PaintEventArgs e)//ridisegna il form ogni volta c'è ne bisogno
         {
+            Tema.Location = new Point(Width - 170, Height - 100);
             //metto il raggio dipendente dalla grandezza del form in modo che si ingrandisce e rimplociolisce insieme ad esso
             if (Width <= Height)//lunghezza raggio
             {
@@ -65,7 +68,7 @@ namespace Orologio
             Cx = Width / 2;//coordinata x del contro del form
             Cy = Height / 2;//coordinata y del contro del form
 
-            #region Parte non movente
+            #region Parte che non cambia
 
             /*g.DrawEllipse(Penna, x, y, diametro (x), diametro (y));
             faccio centro - raggio perchè il form disegna dall'angolo in'alto a sinistra,
@@ -93,7 +96,7 @@ namespace Orologio
                 //gli if sono solo per spessore e lungezza diversa per le tacche in punti speciale es(12,1, 2 ecc.)
                 if (Teta % 90 == 0)//ad ogni quarto (12, 3, 6, 9)
                 {
-                    Tacca = new Pen(Color.Black, 10);
+                    Tacca.Width = 10;
                     //x: converti ad un intero(distanza dal centro iniziale * coseno(angolo in radianti) + Cx)
                     x = Convert.ToInt32((Raggio - 40) * Math.Cos(Teta * (Math.PI / 180)) + Cx);
                     //y: converti ad un intero(-distanza dal centro iniziale * seno(angolo in radianti) + Cy)
@@ -107,7 +110,7 @@ namespace Orologio
                 }
                 else if (Teta % 30 == 0)//ad ogni dodicesimo (1, 2, 4, 5, 7, 8, 10, 11)
                 {
-                    Tacca = new Pen(Color.Black, 8);
+                    Tacca.Width = 8;
                     x = Convert.ToInt32((Raggio - 35) * Math.Cos(Teta * (Math.PI / 180)) + Cx);
                     y = Convert.ToInt32(-(Raggio - 35) * Math.Sin(Teta * (Math.PI / 180)) + Cy);
                     x2 = Convert.ToInt32((Raggio - 10) * Math.Cos(Teta * (Math.PI / 180)) + Cx);
@@ -116,7 +119,7 @@ namespace Orologio
                 }
                 else//ad ogni sessantesimo (tutto il resto)
                 {
-                    Tacca = new Pen(Color.Black, 4);
+                    Tacca.Width = 4;
                     x = Convert.ToInt32((Raggio - 30) * Math.Cos(Teta * (Math.PI / 180)) + Cx);
                     y = Convert.ToInt32(-(Raggio - 30) * Math.Sin(Teta * (Math.PI / 180)) + Cy);
                     x2 = Convert.ToInt32((Raggio - 15) * Math.Cos(Teta * (Math.PI / 180)) + Cx);
@@ -129,7 +132,7 @@ namespace Orologio
 
             #endregion
 
-            #region Parte movente
+            #region Parte che cambia
 
             #region Timer
             //DateTime.Now.ToString("HH:mm") --> Orario corrente in ore da 24 in stringa;
@@ -139,6 +142,7 @@ namespace Orologio
             //y: Cy + un quinto del raggio;
             y = Cy + (Raggio / 5);
             //g.DrawRectangle(penna, x, y, larghezza, altezza)
+            e.Graphics.FillRectangle(InternoRettangolo, x, y, Stringsize.Width, Stringsize.Height);
             e.Graphics.DrawRectangle(Rettangolo, x, y, Stringsize.Width, Stringsize.Height);
             e.Graphics.DrawString(DateTime.Now.ToString("HH:mm"), FontClock, Clock, x, y);
             #endregion
@@ -181,7 +185,7 @@ namespace Orologio
             #endregion
 
             //g.FillEllipse(colore pieno, cx - raggio cerchio/2, cy - raggio cerchio/2, diametrox, diametero y)
-            e.Graphics.FillEllipse(Brushes.Black, Cx - 15, Cy - 15, 30, 30); //Cerchio centrale
+            e.Graphics.FillEllipse(Numeri, Cx - 15, Cy - 15, 30, 30); //Cerchio centrale, il pennello è numeri solo per comodità (è nero)
         }
         
         private void timer1_Tick(object sender, EventArgs e)
@@ -189,6 +193,40 @@ namespace Orologio
             //bisogna cancellare le lanciatte che sono state disegnate prima di disegnare di nuovo la lancietta
             //sbianca il form
             Invalidate(); //Invalidates the entire surface of the control and causes the control to be redrawn.
+        }
+
+        private void TemaScuro_Click(object sender, EventArgs e)
+        {//Semplice da spigare, cambia solo i colori
+            if(TemaScuro)//se il tema è scuro metti chiaro
+            {
+                BackColor = Color.White;//colore form
+                Orologio.Color = Color.Black;//colore dell'orologio ecc.
+                Minuti.Color = Color.Black;
+                Ore.Color = Color.Black;
+                Tacca.Color = Color.Black;
+                Numeri = new SolidBrush(Color.Black);
+                InternoRettangolo = new SolidBrush(Color.DarkSeaGreen);
+
+                Tema.BackColor = Color.White;//colore del pulsante
+                Tema.ForeColor = Color.Black;//colore del testo del pulsante
+                Tema.Text = "Metti tema scuro";
+                TemaScuro = false;
+            }
+            else//se no metti scuro
+            {
+                BackColor = Color.FromArgb(21, 32, 43);
+                Orologio.Color = Color.LightGray;
+                Minuti.Color = Color.LightGray;
+                Ore.Color = Color.LightGray;
+                Tacca.Color = Color.LightGray;
+                Numeri = new SolidBrush(Color.LightGray);
+                InternoRettangolo = new SolidBrush(Color.DarkOliveGreen);
+
+                Tema.BackColor = Color.FromArgb(21, 32, 43);
+                Tema.ForeColor = Color.LightGray;
+                Tema.Text = "Metti tema chiaro";
+                TemaScuro = true;
+            }
         }
     }
 }
