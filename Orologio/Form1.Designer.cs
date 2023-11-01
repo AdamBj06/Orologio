@@ -42,7 +42,7 @@
             // 
             // Tema
             // 
-            this.Tema.Font = new System.Drawing.Font("Arial Narrow", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Tema.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Tema.Location = new System.Drawing.Point(632, 709);
             this.Tema.Name = "Tema";
             this.Tema.Size = new System.Drawing.Size(140, 40);
